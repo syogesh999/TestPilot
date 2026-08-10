@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: Sample E-Commerce & Management API
+  description: Target REST API specification for TestPilot Quality Engineering verification.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:4000/api
+    description: Local Development Server
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate user
+      description: Returns JWT token upon valid email and password credentials.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecretPass123!
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - token
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+        '400':
+          description: Missing email or password
+        '401':
+          description: Invalid credentials
+
+  /users:
+    get:
+      summary: List all users
+      description: Returns list of user records.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+    post:
+      summary: Create new user
+      description: Creates a user record with schema validation and boundary constraints.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserPayload'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Schema or constraint validation error
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+        '404':
+          description: User not found
+
+  /products:
+    get:
+      summary: List all products (Protected)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Product catalog list
+        '401':
+          description: Unauthorized request
+
+    post:
+      summary: Add new product (Protected)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - price
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                price:
+                  type: number
+                  minimum: 1
+                category:
+                  type: string
+      responses:
+        '201':
+          description: Product added
+        '400':
+          description: Missing required field or invalid numeric boundary
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        age:
+          type: integer
+          minimum: 18
+          maximum: 100
+        role:
+          type: string
+          enum: [admin, user, guest]
+
+    CreateUserPayload:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        age:
+          type: integer
+          minimum: 18
+          maximum: 100
+        role:
+          type: string
+          enum: [admin, user, guest]
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

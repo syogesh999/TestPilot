@@ -1,0 +1,29 @@
+const express = require('express');
+const router = express.Router();
+const {
+  getProjects,
+  createProject,
+  getProjectById,
+  updateProject,
+  deleteProject,
+  getEnvironments,
+  createEnvironment,
+} = require('../controllers/projectController');
+const { protect } = require('../middleware/auth');
+
+router.use(protect);
+
+router.route('/')
+  .get(getProjects)
+  .post(createProject);
+
+router.route('/:id')
+  .get(getProjectById)
+  .put(updateProject)
+  .delete(deleteProject);
+
+router.route('/:id/environments')
+  .get(getEnvironments)
+  .post(createEnvironment);
+
+module.exports = router;

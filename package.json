@@ -1,0 +1,26 @@
+{
+  "name": "testpilot-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TestPilot — AI-Powered API Quality Engineering Platform",
+  "workspaces": [
+    "server",
+    "client",
+    "sample-api"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspace=server --workspace=client --workspace=sample-api",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:sample-api": "npm run dev --workspace=sample-api",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:sample-api\"",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "build": "npm run build:server && npm run build:client",
+    "test:server": "npm test --workspace=server",
+    "test": "npm run test:server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
