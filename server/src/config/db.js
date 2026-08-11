@@ -9,11 +9,11 @@ const connectDB = async () => {
 
   if (uri) {
     try {
-      const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
+      const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 2000 });
       logger.info(`MongoDB Connected to primary database: ${conn.connection.host}`);
       return conn;
     } catch (error) {
-      logger.warn({ err: error.message }, 'Could not connect to MONGODB_URI. Attempting MongoMemoryServer...');
+      logger.warn({ err: error.message }, 'Primary MONGODB_URI unreachable. Initializing MongoMemoryServer fallback...');
     }
   }
 

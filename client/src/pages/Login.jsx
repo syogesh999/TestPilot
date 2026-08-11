@@ -18,10 +18,15 @@ export default function Login() {
   };
 
   const handleDemoRegisterAndLogin = async () => {
-    const { register } = useAuthStore.getState();
-    await register('Demo Engineer', 'demo@testpilot.io', 'SecretPass123!');
-    const success = await login('demo@testpilot.io', 'SecretPass123!');
-    if (success) navigate('/dashboard');
+    let success = await login('demo@testpilot.io', 'SecretPass123!');
+    if (!success) {
+      const { register } = useAuthStore.getState();
+      await register('Demo Engineer', 'demo@testpilot.io', 'SecretPass123!');
+      success = await login('demo@testpilot.io', 'SecretPass123!');
+    }
+    if (success) {
+      navigate('/dashboard');
+    }
   };
 
   return (
