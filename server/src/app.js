@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -15,7 +16,11 @@ const runRoutes = require('./routes/runRoutes');
 const app = express();
 
 // Security Middlewares
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 // Production CORS Configuration
 const getCorsOrigin = () => {
@@ -53,12 +58,15 @@ app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    logger.info({
-      method: req.method,
-      path: req.originalUrl,
-      status: res.statusCode,
-      durationMs: duration,
-    }, 'HTTP Request');
+    logger.info(
+      {
+        method: req.method,
+        path: req.originalUrl,
+        status: res.statusCode,
+        durationMs: duration,
+      },
+      'HTTP Request'
+    );
   });
   next();
 });
@@ -81,6 +89,27 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId', specRoutes);
 app.use('/api/projects/:projectId/tests', testRoutes);
 app.use('/api/runs', runRoutes);
+
+// Serve static React client files in production
+const clientDistPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDistPath));
+
+// Catch-all route to serve React SPA frontend or root health status
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+    if (err) {
+      res.json({
+        service: 'TestPilot API Engine',
+        status: 'UP',
+        healthCheck: '/api/health',
+        documentation: 'https://github.com/syogesh999/TestPilot',
+      });
+    }
+  });
+});
 
 // Centralized Error Handling
 app.use(errorHandler);
