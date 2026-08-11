@@ -1,6 +1,6 @@
 # TestPilot — Production Deployment Guide
 
-This document outlines the primary production deployment procedure for TestPilot using **Render** and **MongoDB Atlas**.
+This document outlines the standard production deployment procedure for TestPilot.
 
 ---
 
@@ -12,41 +12,56 @@ This document outlines the primary production deployment procedure for TestPilot
                                        │
                     ┌──────────────────┴──────────────────┐
                     ▼                                     ▼
-         Frontend Static Site                    Backend Web Service
-             (testpilot-web)                       (testpilot-api)
+         Frontend Static Assets                  Backend Web Service
+             (React 18 SPA)                        (Express.js Engine)
           Root Dir: `client`                       Root Dir: `server`
           Build: `npm run build`                   Build: `npm install`
           Publish: `dist`                          Start: `node src/server.js`
                     │                                     │
-                    │                                     ├── MongoDB Atlas M0 Free
+                    │                                     ├── MongoDB Atlas M0 / Production DB
                     │                                     │
                     └─────────── HTTPS REST ──────────────┴── Playwright APIRequestContext
 ```
 
 ---
 
-## 🛠️ Step 1: Set Up MongoDB Atlas (Database)
+## 🛠️ Step 1: Set Up MongoDB Production Database
 
-1. Sign up or log into [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-2. Create a free **M0 Shared Cluster**.
-3. Under **Database Access**, create a user (e.g. `testpilot_admin`) and generate a secure password.
-4. Under **Network Access**, add IP address `0.0.0.0/0` (Allow Access from Anywhere).
-5. Click **Connect** $\rightarrow$ **Drivers** $\rightarrow$ copy your `MONGODB_URI`:
+1. Create a MongoDB database cluster (such as [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)).
+2. Under **Database Access**, create a user (e.g. `testpilot_admin`) and generate a secure password.
+3. Under **Network Access**, configure IP whitelist settings for your server instance.
+4. Copy your connection string:
    ```env
    MONGODB_URI=mongodb+srv://testpilot_admin:<password>@cluster0.mongodb.net/testpilot?retryWrites=true&w=majority
    ```
 
 ---
 
-## 🚀 Step 2: Deploying to Render (1-Click Blueprint)
+## 🚀 Step 2: Deploying the Backend API Engine
 
-1. Log into [Render Dashboard](https://dashboard.render.com/).
-2. Click **New +** $\rightarrow$ **Blueprints**.
-3. Connect your GitHub repository: `https://github.com/syogesh999/TestPilot`.
-4. Render will automatically detect `render.yaml` and provision both services:
-   - `testpilot-api` (Backend Express Web Service)
-   - `testpilot-web` (Frontend React Static Site)
-5. In **`testpilot-api` Environment Variables**, add your `MONGODB_URI` connection string.
+- **Root Directory**: `server`
+- **Build Command**: `npm install`
+- **Start Command**: `node src/server.js`
+- **Health Check Path**: `/api/health`
+
+### Environment Variables:
+- `NODE_ENV` = `production`
+- `PORT` = `5000` *(or assigned cloud port)*
+- `JWT_SECRET` = `your_secure_32char_jwt_secret_key`
+- `CLIENT_URL` = `https://your-frontend-domain.com`
+- `MONGODB_URI` = `mongodb+srv://...`
+
+---
+
+## 🌐 Step 3: Deploying the Frontend Static Site
+
+- **Root Directory**: `client`
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
+- **SPA Rewrite Rule**: Source `/*` $\rightarrow$ Destination `/index.html`
+
+### Environment Variables:
+- `VITE_API_URL` = `https://your-backend-domain.com/api`
 
 ---
 
@@ -55,18 +70,18 @@ This document outlines the primary production deployment procedure for TestPilot
 | Variable | Scope | Required | Default / Description |
 | :--- | :---: | :---: | :--- |
 | `NODE_ENV` | Backend | **Yes** | `production` |
-| `PORT` | Backend | **Yes** | Set automatically by Render (`10000`) |
-| `MONGODB_URI` | Backend | Optional | MongoDB Atlas connection string |
+| `PORT` | Backend | **Yes** | Cloud server port |
+| `MONGODB_URI` | Backend | Recommended | Production MongoDB connection string |
 | `JWT_SECRET` | Backend | **Yes** | Secure 32+ char random string |
-| `CLIENT_URL` | Backend | **Yes** | `https://testpilot-web.onrender.com` *(or `*`)* |
-| `VITE_API_URL` | Frontend | **Yes** | `https://testpilot-api.onrender.com/api` |
+| `CLIENT_URL` | Backend | **Yes** | Production frontend URL |
+| `VITE_API_URL` | Frontend | **Yes** | Production backend API endpoint URL |
 | `OPENAI_API_KEY` | Backend | Optional | `sk-...` *(for Cloud GPT-4o AI report explanations)* |
 
 ---
 
 ## 🧪 Post-Deployment Verification
 
-1. **Health Check**: Open `https://testpilot-api.onrender.com/api/health` in your browser. Expected response:
+1. **Health Check**: Open `https://your-backend-domain.com/api/health` in your browser. Expected response:
    ```json
    {
      "success": true,
@@ -74,4 +89,4 @@ This document outlines the primary production deployment procedure for TestPilot
      "status": "healthy"
    }
    ```
-2. **Frontend UI**: Open `https://testpilot-web.onrender.com/`. Click **Launch instant Demo Workspace** to verify authentication, OpenAPI spec import, and automated Playwright execution.
+2. **Frontend UI**: Open `https://your-frontend-domain.com/`. Click **Launch instant Demo Workspace** to verify authentication, OpenAPI spec import, and automated Playwright execution.

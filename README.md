@@ -61,9 +61,9 @@ flowchart TD
 
 ## 🌐 Production Deployment Guides
 
-Detailed, step-by-step production deployment documentation is available in [`docs/`](docs/):
+Detailed production deployment documentation is available in [`docs/`](docs/):
 
-- **[Render & MongoDB Atlas Production Deployment Guide](docs/deployment.md)**
+- **[Production Deployment Guide](docs/deployment.md)**
 - **[GitHub Actions Free-Tier CI/CD Pipeline Guide](docs/ci-cd-setup.md)**
 - **[Security Architecture & SSRF Protection Specs](docs/security.md)**
 
@@ -190,7 +190,6 @@ TestPilot/
 │
 ├── docs/                        # Architecture, Deployment, & Security documentation
 ├── .github/workflows/ci.yml     # GitHub Actions automated CI/CD pipeline
-├── render.yaml                  # Hardened 1-Click Render Blueprint specification
 ├── docker-compose.yml           # Docker orchestration
 └── README.md                    # Platform documentation
 ```
