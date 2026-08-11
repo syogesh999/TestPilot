@@ -26,7 +26,7 @@ Push to main / develop / PR
 │ - Boots Target Sample API (Port 4000) │
 │ - Boots TestPilot Server (Port 5000)  │
 │ - Verifies /api/health response        │
-└───────────────────────────────────────┘
+└──────────────────┬────────────────────┘
 ```
 
 ---
@@ -54,21 +54,9 @@ git checkout develop
 2. Click the **Actions** tab at the top.
 3. You will see **"TestPilot CI/CD Pipeline"** running with live logs for Unit Tests, Vite Client Build, and Server Health Verification.
 
-### 3. Add Build Status Badge to GitHub README (Already Included)
-Your `README.md` already contains the status badge syntax:
+### 3. Add Build Status Badge to GitHub README
+Your `README.md` contains the status badge syntax:
 
 ```markdown
 ![TestPilot CI/CD](https://github.com/syogesh999/TestPilot/actions/workflows/ci.yml/badge.svg)
 ```
-
----
-
-## 🌐 Free Cloud Hosting Options for TestPilot
-
-If you want to host the live demo publicly for free:
-
-| Component | Recommended Free Host | Setup Steps |
-| :--- | :--- | :--- |
-| **Client Frontend** | **Vercel** / **Netlify** | Connect GitHub repo $\rightarrow$ Root dir `client` $\rightarrow$ Build command `npm run build` $\rightarrow$ Output `dist` |
-| **Express Backend** | **Render** / **Railway** | Connect GitHub repo $\rightarrow$ Root dir `server` $\rightarrow$ Start command `npm start` |
-| **MongoDB Database** | **MongoDB Atlas M0 Free** | Create free M0 cluster $\rightarrow$ Set `MONGODB_URI` environment variable in Render |
