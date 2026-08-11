@@ -6,8 +6,9 @@ const { connectDB } = require('./config/db');
 const startServer = async () => {
   await connectDB();
 
-  const server = app.listen(config.port, () => {
-    logger.info(`TestPilot Server running in ${config.env} mode on port ${config.port}`);
+  const HOST = '0.0.0.0';
+  const server = app.listen(config.port, HOST, () => {
+    logger.info(`TestPilot Server running in ${config.env} mode on ${HOST}:${config.port}`);
   });
 
   const handleShutdown = (signal) => {
