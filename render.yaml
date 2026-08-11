@@ -1,0 +1,39 @@
+services:
+  # Express Backend Web Service
+  - type: web
+    name: testpilot-api
+    env: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        value: https://testpilot-web.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REQUEST_TIMEOUT_MS
+        value: "15000"
+      - key: MAX_RESPONSE_BYTES
+        value: "1048576"
+
+  # React Frontend Static Site
+  - type: web
+    name: testpilot-web
+    env: static
+    region: oregon
+    plan: free
+    rootDir: client
+    buildCommand: npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://testpilot-api.onrender.com/api

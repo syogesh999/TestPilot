@@ -16,7 +16,22 @@ const app = express();
 
 // Security Middlewares
 app.use(helmet());
-app.use(cors({ origin: config.clientUrl, credentials: true }));
+
+// Production CORS Configuration
+const getCorsOrigin = () => {
+  if (!config.clientUrl || config.clientUrl === '*') return '*';
+  if (config.clientUrl.includes(',')) {
+    return config.clientUrl.split(',').map((url) => url.trim());
+  }
+  return config.clientUrl;
+};
+
+app.use(
+  cors({
+    origin: getCorsOrigin(),
+    credentials: true,
+  })
+);
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -48,11 +63,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health Check Endpoint (STEP 7 requirement)
+// Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    status: 'UP',
+    service: 'testpilot-api',
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     env: config.env,
