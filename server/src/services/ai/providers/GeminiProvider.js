@@ -5,7 +5,7 @@ const logger = require('../../../config/logger');
 class GeminiProvider {
   constructor() {
     this.apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY;
-    this.model = config.geminiModel || process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+    this.model = config.geminiModel || process.env.GEMINI_MODEL || 'gemini-1.5-pro';
   }
 
   isAvailable() {
@@ -39,32 +39,43 @@ Respond ONLY with valid JSON in this exact structure:
   "recommendations": ["Recommendation 1", "Recommendation 2"]
 }`;
 
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
-      const response = await axios.post(
-        url,
-        {
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-          },
-        },
-        {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 20000,
-        }
-      );
+    const modelsToTry = [this.model, 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    const uniqueModels = [...new Set(modelsToTry)];
 
-      const jsonText = response.data.candidates[0].content.parts[0].text;
-      return JSON.parse(jsonText);
-    } catch (err) {
-      logger.error({ err: err.message }, 'Google Gemini API analysis failed');
-      throw err;
+    let lastError = null;
+
+    for (const targetModel of uniqueModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${this.apiKey}`;
+        const response = await axios.post(
+          url,
+          {
+            contents: [
+              {
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: 'application/json',
+            },
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 25000,
+          }
+        );
+
+        const jsonText = response.data.candidates[0].content.parts[0].text;
+        logger.info({ model: targetModel }, 'Google Gemini AI Analysis Succeeded');
+        return JSON.parse(jsonText);
+      } catch (err) {
+        lastError = err;
+        logger.warn({ model: targetModel, err: err.message }, 'Gemini model attempt failed. Trying fallback model...');
+      }
     }
+
+    logger.error({ err: lastError?.message }, 'All Google Gemini API models failed');
+    throw lastError;
   }
 
   async suggestEdgeCases(endpoint) {
