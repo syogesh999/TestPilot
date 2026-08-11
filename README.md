@@ -6,9 +6,9 @@
 [![Playwright](https://img.shields.io/badge/Playwright-APIRequestContext-red.svg?style=for-the-badge&logo=playwright)](https://playwright.dev/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20%2F%20Embedded-green.svg?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.x-brightgreen.svg?style=for-the-badge&logo=openapiinitiative)](https://www.openapis.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![TestPilot CI/CD](https://github.com/syogesh999/TestPilot/actions/workflows/ci.yml/badge.svg)](https://github.com/syogesh999/TestPilot/actions)
 
-> **TestPilot** converts machine-readable **OpenAPI/Swagger 3.x contracts** into **executable functional, negative, type-mutation, boundary-value, enum-constraint, and security test suites**. Executes tests asynchronously via **Playwright's `APIRequestContext`**, validates response contracts strictly using **Ajv**, computes a transparent **Weighted Quality Score (0–100)**, and provides **optional local AI analysis** using Ollama.
+> **TestPilot** converts machine-readable **OpenAPI/Swagger 3.x contracts** into **executable functional, negative, type-mutation, boundary-value, enum-constraint, and security test suites**. Executes tests asynchronously via **Playwright's `APIRequestContext`**, validates response contracts strictly using **Ajv**, computes a transparent **Weighted Quality Score (0–100)**, and provides **optional local/cloud AI analysis** using OpenAI or Ollama.
 
 ---
 
@@ -52,10 +52,20 @@ flowchart TD
     end
 
     Backend -->|Persist Runs & Results| DB[(MongoDB / MongoMemoryServer)]
-    Backend -->|Optional Local Inference| AI[AIService / Ollama LLM]
+    Backend -->|Optional Local Inference| AI[AIService / OpenAI / Ollama]
 
     Scorer -->|Quality Score 0-100| DashboardUI[Developer Analytics Dashboard]
 ```
+
+---
+
+## 🌐 Production Deployment Guides
+
+Detailed, step-by-step production deployment documentation is available in [`docs/`](docs/):
+
+- **[Render & MongoDB Atlas Production Deployment Guide](docs/deployment.md)**
+- **[GitHub Actions Free-Tier CI/CD Pipeline Guide](docs/ci-cd-setup.md)**
+- **[Security Architecture & SSRF Protection Specs](docs/security.md)**
 
 ---
 
@@ -110,7 +120,7 @@ Follow these steps to run TestPilot locally in **under 60 seconds**:
 
 ### 2. Clone Repository & Install Dependencies
 ```bash
-git clone https://github.com/your-username/TestPilot.git
+git clone https://github.com/syogesh999/TestPilot.git
 cd TestPilot
 
 # Install all monorepo dependencies (root, server, client, sample-api)
@@ -121,7 +131,6 @@ npm run install:all
 ```bash
 npm test
 ```
-*Executes unit tests for OpenAPI parser, deterministic test generators, Ajv contract validator, and Quality Scoring engine.*
 
 ### 4. Start Monorepo Services
 ```bash
@@ -144,22 +153,6 @@ This concurrently launches:
 5. Navigate to **Test Generator & Cases** $\rightarrow$ Click **"Generate Deterministic Tests"** (creates 20+ test cases across 7 categories).
 6. Navigate to **Execute Suite** $\rightarrow$ Select Target Environment (`http://localhost:4000`) $\rightarrow$ Click **"RUN TESTS NOW"**.
 7. View live progress, inspect failed assertions in the **Result Inspector**, and review the **Quality Score & AI Analysis Report**.
-
----
-
-## 💡 System Design & Technical Interview Points
-
-### 1. Why OpenAPI contracts instead of Postman collections?
-OpenAPI specifications provide formal, machine-readable constraints (data types, minimums, maximums, required properties, enums) from which test suites can be generated deterministically without manual request building.
-
-### 2. Why Playwright APIRequestContext instead of custom fetch/axios?
-Playwright's `APIRequestContext` is specifically optimized for automated API testing in Node.js. It manages cookies, keeps contexts isolated, handles custom header overrides cleanly, and integrates natively into automated CI/CD pipelines.
-
-### 3. Why a deterministic engine before AI?
-AI models can hallucinate endpoints or fail to reproduce edge cases consistently. TestPilot guarantees reproducible, explainable, contract-based test cases first. AI is layered as an enhancement for failure explanations and recommendations.
-
-### 4. How does TestPilot prevent Server-Side Request Forgery (SSRF)?
-Because TestPilot makes outbound HTTP requests to user-specified target servers, `ssrfProtection.js` validates target URLs and blocks access to cloud metadata services (`169.254.169.254`, `metadata.google.internal`) and internal private addresses.
 
 ---
 
@@ -187,7 +180,7 @@ TestPilot/
 │   │   │   ├── runner/          # Playwright APIRequestContext executor
 │   │   │   ├── validator/       # Ajv JSON schema contract validator
 │   │   │   ├── scoring/         # Quality Scoring Engine
-│   │   │   └── ai/              # AIService (Ollama + Fallback provider)
+│   │   │   └── ai/              # AIService (OpenAI + Ollama + Fallback provider)
 │   │   └── app.js & server.js
 │   └── tests/                   # Jest unit test suite
 │
@@ -195,7 +188,9 @@ TestPilot/
 │   ├── src/server.js            # Mock REST endpoints (/auth/login, /users, /products)
 │   └── openapi/                 # sample-openapi.yaml target contract definition
 │
-├── docs/                        # Architecture & Security documentation
+├── docs/                        # Architecture, Deployment, & Security documentation
+├── .github/workflows/ci.yml     # GitHub Actions automated CI/CD pipeline
+├── render.yaml                  # Hardened 1-Click Render Blueprint specification
 ├── docker-compose.yml           # Docker orchestration
 └── README.md                    # Platform documentation
 ```
