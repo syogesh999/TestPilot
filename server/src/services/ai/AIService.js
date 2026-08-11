@@ -1,20 +1,28 @@
+const OpenAIProvider = require('./providers/OpenAIProvider');
 const OllamaProvider = require('./providers/OllamaProvider');
 const FallbackProvider = require('./providers/FallbackProvider');
 const logger = require('../../config/logger');
 
 class AIService {
   constructor() {
+    this.openAIProvider = new OpenAIProvider();
     this.ollamaProvider = new OllamaProvider();
     this.fallbackProvider = new FallbackProvider();
   }
 
   async getProvider() {
-    const isAvailable = await this.ollamaProvider.isAvailable();
-    if (isAvailable) {
+    if (this.openAIProvider.isAvailable()) {
+      logger.info('Using OpenAI Cloud AI provider');
+      return this.openAIProvider;
+    }
+
+    const isOllamaAvailable = await this.ollamaProvider.isAvailable();
+    if (isOllamaAvailable) {
       logger.info('Using Ollama local AI provider');
       return this.ollamaProvider;
     }
-    logger.info('Ollama offline/unavailable. Falling back to Rule-based AI Engine');
+
+    logger.info('No cloud/local AI key detected. Using Rule-based Fallback AI Engine');
     return this.fallbackProvider;
   }
 
