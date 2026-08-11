@@ -1,3 +1,4 @@
+const GeminiProvider = require('./providers/GeminiProvider');
 const OpenAIProvider = require('./providers/OpenAIProvider');
 const OllamaProvider = require('./providers/OllamaProvider');
 const FallbackProvider = require('./providers/FallbackProvider');
@@ -5,12 +6,18 @@ const logger = require('../../config/logger');
 
 class AIService {
   constructor() {
+    this.geminiProvider = new GeminiProvider();
     this.openAIProvider = new OpenAIProvider();
     this.ollamaProvider = new OllamaProvider();
     this.fallbackProvider = new FallbackProvider();
   }
 
   async getProvider() {
+    if (this.geminiProvider.isAvailable()) {
+      logger.info('Using Google Gemini Cloud AI provider (Free Tier)');
+      return this.geminiProvider;
+    }
+
     if (this.openAIProvider.isAvailable()) {
       logger.info('Using OpenAI Cloud AI provider');
       return this.openAIProvider;
