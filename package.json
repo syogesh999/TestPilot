@@ -14,8 +14,8 @@
     "dev:client": "npm run dev --workspace=client",
     "dev:sample-api": "npm run dev --workspace=sample-api",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:sample-api\"",
-    "build:client": "npm run build --workspace=client",
-    "build": "npm run install:all && npm run build:client",
+    "build:client": "cd client && npm run build",
+    "build": "cd client && npm run build",
     "test:server": "npm test --workspace=server",
     "test": "npm run test:server"
   },
